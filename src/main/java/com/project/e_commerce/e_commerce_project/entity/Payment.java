@@ -25,7 +25,7 @@ public class Payment {
   private String paymentMethod;
 
 
-  @OneToOne(mappedBy = "payment",cascade = {CascadeType.MERGE,CascadeType.PERSIST})
+  @OneToOne(mappedBy = "payment")
   private Order order;
 
 }

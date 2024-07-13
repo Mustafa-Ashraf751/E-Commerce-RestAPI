@@ -1,6 +1,7 @@
 package com.project.e_commerce.e_commerce_project.service.imple;
 
 import com.project.e_commerce.e_commerce_project.Dto.OrderDTO;
+import com.project.e_commerce.e_commerce_project.Dto.OrderItemDTO;
 import com.project.e_commerce.e_commerce_project.Dto.OrderResponse;
 import com.project.e_commerce.e_commerce_project.entity.*;
 import com.project.e_commerce.e_commerce_project.exception.APIException;
@@ -74,55 +75,27 @@ public class OrderServiceImple implements OrderService {
     LocalDate date = LocalDate.now();
     order.setLocalDate(date);
 
-//    //Save the order initially to generate its id
-//    Order savedOrder = orderRepo.save(order);
-//
-//    //Update payment information
-//    Payment payment = new Payment();
-//    payment.setPaymentMethod(paymentMethod);
-//    payment.setOrder(savedOrder);
-//    payment = paymentRepo.save(payment);
-//    //Update order with payment information
-//    savedOrder.setPayment(payment);
-//
-//    List<OrderItem> orderItems = new ArrayList<>();
-//    cart.getCartItems().forEach(cartItem -> {
-//              OrderItem orderItem = new OrderItem();
-//              orderItem.setOrder(savedOrder);
-//              orderItem.setOrderProductPrice(cartItem.getProductPrice());
-//              orderItem.setProduct(cartItem.getProduct());
-//              orderItem.setQuantity(cartItem.getQuantity());
-//              orderItem.setDiscount(cartItem.getDiscount());
-//              orderItems.add(orderItem);
-//            }
-//    );
-//
-//    //saving the order
-//    order.setOrderItems(orderItems);
-//    Order finalSave = orderRepo.save(savedOrder);
-// Create the payment
+    List<OrderItem> orderItems = new ArrayList<>();
+    cart.getCartItems().forEach(cartItem -> {
+              OrderItem orderItem = new OrderItem();
+              orderItem.setOrder(order);
+              orderItem.setOrderProductPrice(cartItem.getProductPrice());
+              orderItem.setProduct(cartItem.getProduct());
+              orderItem.setQuantity(cartItem.getQuantity());
+              orderItem.setDiscount(cartItem.getDiscount());
+              orderItems.add(orderItem);
+            }
+    );
+
+    //saving the orderItems to order
+    order.setOrderItems(orderItems);
+    //Update payment information
     Payment payment = new Payment();
     payment.setPaymentMethod(paymentMethod);
-    payment.setOrder(order);
+    payment.setOrder(order);//paymentId null orderId num
     order.setPayment(payment);
-
-    // Create order items
-    List<OrderItem> orderItems = new ArrayList<>();
-    for (CartItem cartItem : cart.getCartItems()) {
-      OrderItem orderItem = new OrderItem();
-      orderItem.setOrder(order);
-      orderItem.setOrderProductPrice(cartItem.getProductPrice());
-      orderItem.setProduct(cartItem.getProduct());
-      orderItem.setQuantity(cartItem.getQuantity());
-      orderItem.setDiscount(cartItem.getDiscount());
-      orderItems.add(orderItem);
-    }
-
-    // Set order items
-    order.setOrderItems(orderItems);
-
-    // Save the order (this should cascade to payment and order items)
     Order savedOrder = orderRepo.save(order);
+
 
     //update products quantity
     cart.getCartItems().forEach(cartItem -> {
@@ -133,11 +106,10 @@ public class OrderServiceImple implements OrderService {
       productRepo.save(product);
     });
 
-    //clear the cart after ordering process
-    cart.getCartItems().clear();
-    cartRepo.save(cart);
+    OrderDTO orderDTO = modelMapper.map(savedOrder, OrderDTO.class);
+    orderItems.forEach(orderItem -> orderDTO.getOrderItems().add(modelMapper.map(orderItem, OrderItemDTO.class)));
 
-    return modelMapper.map(savedOrder, OrderDTO.class);
+    return orderDTO;
   }
 
   @Override

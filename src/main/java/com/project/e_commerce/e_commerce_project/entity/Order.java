@@ -33,11 +33,11 @@ public class Order {
   private LocalDate localDate;
 
 
-  @OneToOne
+  @OneToOne(cascade = CascadeType.ALL)
   @JoinColumn(name = "payment_id")
   private Payment payment;
 
-  @OneToMany(mappedBy = "order",cascade = {CascadeType.MERGE,CascadeType.PERSIST})
+  @OneToMany(mappedBy = "order",cascade = CascadeType.ALL)
   private List<OrderItem> orderItems = new ArrayList<>();
-
+// CascadeType.MERGE,CascadeType.PERSIST
 }
